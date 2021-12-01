@@ -1,6 +1,6 @@
 function VP=GeneratingPatients(num_patients)
 
-% Calculate BW
+% load world population data downloaded from http://ncdrisc.org/data-downloads.html
 load PopulationDataWomen
 load PopulationDataMen
 possibleGenders={'Man','Woman'};
@@ -10,14 +10,12 @@ possibleCountries=PopulationDataWomen.Properties.RowNames; %get a list of all co
 %PopulationDataWomen or PopulationDataMen files as country names.
 
 np=num_patients; %number of patients to simulate
-% nGen=randi([1, 2],1,np); %construct random sequence of 1 and 2 to construct 
-%sequence of gender information about population
-% GenderPop=possibleGenders(nGen); %generate distribution of genders within population
-GenderPop=cell(1,np);
-%GenderPop(:)=cellstr('Man');
-GenderPop(:)=cellstr('Woman') ;
+GenderPop=cell(1,np);%generate distribution of genders within population
+GenderPop(:)=cellstr('Woman') ; %only looking at women
+
 %Construct population from all possible countries
 randCount=randi(length(possibleCountries),1,np); %construct random sequence from 1 to total 
+
 %number of countries listed 
 Countries=possibleCountries(randCount);%generate distribution of countries for each individual
 
@@ -52,13 +50,13 @@ Heights=normrnd(MeanHeight,varHeight)/100;%m
 %Physiological characteristics of population
 BW=BMIs.*Heights.^2; %average body weight in kgs
 
+%plot distribution for patient BMIs, Heights and BW
 figure
 histogram(BMIs,'FaceColor',[6 141 157]/255,'EdgeColor',[1 1 1])
 ylabel('Frequency')
 xlabel('BMI')
 grid on
 set(gca,'FontSize',18)
-
 
 figure
 histogram(Heights,'FaceColor',[128 222 217]/255,'EdgeColor',[1 1 1])
@@ -78,28 +76,11 @@ set(gca,'FontSize',18)
 % PAC-1 parameters
 %Fixed effects
 theta_VdcPAC1=0.7;%Vd central (L/kg)
-%theta_VdePAC1=2.7;%Vd terminal (L/kg)
-%theta_VdssPAC1=1.6;%Vd steady state (L/kg)
-%theta_thalf_alphaPAC1=0.4;%distribution half-life (h)
-%theta_thalf_betaPAC1=3.1;%terminal half-life (h)
 theta_ClPAC1=0.5744;%total body clearance (L/kg/h)
 
 %Standard deviations
 SD_VdcPAC1=0.3;
-%SD_VdePAC1=0.9;
-%SD_VdssPAC1=0.5;
-%SD_thalf_alphaPAC1=0.2;
-%SD_thalf_betaPAC1=0.7;
 SD_ClPAC1=0.0757;
-
-% FixedValuesPAC1=[theta_VdcPAC1 theta_VdePAC1 theta_VdssPAC1...
-%     theta_thalf_alphaPAC1 theta_thalf_betaPAC1 theta_ClPAC1];
-% VarPAC1 = [SD_VdcPAC1^2 0 0 0 0 0;
-%            0 SD_VdePAC1^2 0 0 0 0;
-%            0 0 SD_VdssPAC1^2 0 0 0;
-%            0 0 0 SD_thalf_alphaPAC1^2 0 0;
-%            0 0 0 0 SD_thalf_betaPAC1^2 0;
-%            0 0 0 0 0 SD_ClPAC1^2];
 
 FixedValuesPAC1=[theta_VdcPAC1 theta_ClPAC1];
 VarPAC1 = [SD_VdcPAC1^2 0
@@ -125,6 +106,7 @@ VarTRAIL=[SD_Vd_TRAIL^2 0;
 %Sample patients
 PatientParamsTRAIL=mvnrnd(FixedValuesTRAIL,VarTRAIL,num_patients); %randomly generating patients
 
+%Plot resulting patient distributions
 figure
 s = scatterhist(PatientParamsPAC1(:,1),PatientParamsPAC1(:,2),'Kernel','off','Location','SouthEast','Direction','out','Color',[83 89 154]/255,'LineWidth',[15])
 set(gca,'FontSize',18)
