@@ -17,3 +17,6 @@ To generate an initial simulation of the model for the virtual patients under a 
 Figure 4:
 To determine each individual virtual patient's optimal treatment of PAC-1 and TRAIL run commands_optimizer.m
 
+Figure 5: 
+To investigate the characteristics of the new sub cohorts run the code commands_cohort1vscohort2.m
+
