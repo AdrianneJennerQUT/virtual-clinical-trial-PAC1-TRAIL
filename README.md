@@ -1,4 +1,4 @@
-![alt text](https://github.com/AdrianneJennerQUT/virtual-clinical-trial-PAC1-TRAIL/GraphicalAbstract.png?raw=true)
+![plot](https://github.com/AdrianneJennerQUT/virtual-clinical-trial-PAC1-TRAIL/GraphicalAbstract.png?raw=true)
 
 Code in this repositiory was used to produce the results in the paper: 
 
