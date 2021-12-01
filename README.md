@@ -21,4 +21,4 @@ Figure 5:
 To investigate the characteristics of the new sub cohorts run the code commands_cohort1vscohort2.m
 
 Figure 6: 
-To create a population of new virtual cohorts based on the sub cohorts identified in Figure 5, used commands_creatingnewcohorts.m.
+To create a population of new virtual cohorts based on the sub cohorts identified in Figure 5, used commands_creatingnewcohorts.m. To then determine protocols that are optimal for all individuals in the sub cohorts run commands_subcohortoptimal.m
