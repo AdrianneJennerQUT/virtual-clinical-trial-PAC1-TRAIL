@@ -3,13 +3,13 @@ function solTreat = modelsimulator(PA)
 
 %PAC-1
 %Load the dosing strategy for PAC-1
-PAC1Dose = [1];
-PA.DosePAC1 = PA.dosePAC1.*(PAC1Dose); %Amount of IL2 administered (input from the optimizer)
+PAC1Dose = [1]; % only giving one dose
+PA.DosePAC1 = PA.dosePAC1.*(PAC1Dose); %Amount of PAC1 administered (input from the optimizer)
 
 %TRAIL 
 %Load the dosing strategy for TRAIL
 TrailDose = [1];
-PA.DoseTrail = PA.doseTRAIL.*(TrailDose); %Amount of IL7 administered (input from the optimizer)
+PA.DoseTrail = PA.doseTRAIL.*(TrailDose); %Amount of TRAIL administered (input from the optimizer)
 
 %Calculate the total dose given:
 TotalDose = dot(PA.DoseTrail,ones(1,PA.AdminNumberTrail)) + dot(PA.DosePAC1,ones(1,PA.AdminNumberPAC1)); 
@@ -55,10 +55,10 @@ end
 
 function dydt=odefun(t,y,PA)
     
-C = y(1);
-D = y(2);
-Cp1 = y(3);
-Cp2 = y(4);    
+C = y(1); % number of cancer cells 
+D = y(2); % tracking number of dead cells
+Cp1 = y(3); %PAC-1
+Cp2 = y(4); % TRAIL   
 
 exp1 = Cp1.^PA.gamma_1./(PA.psi*PA.IC50_1).^PA.gamma_1;
 exp2 = (PA.xi*Cp2).^PA.gamma_2./(PA.psi*PA.IC50_1).^PA.gamma_2;

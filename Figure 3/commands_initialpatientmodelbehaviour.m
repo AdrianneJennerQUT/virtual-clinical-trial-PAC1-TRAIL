@@ -1,29 +1,29 @@
-% simulate average model behaviour
+% simulate virtual cohort behaviour under a single injection of PAC-1 and
+% TRAIL
 
+%% load virtual patients in
 load VP.mat
 load VP_May31.mat
 VirtualP=[VP; VP_May31];
 
-r = 0.052696;
-K = 1745423909.2602;
-C01 = 15000;
-C02 = 10000;
-C03 = 5000;
+%% Loading in initial parameter values 
 
+% setting colours for different model variables
 col1 = [239 71 111]/255; %PAC1
 col2 = [255 209 102]/255; %TRAIL
 col3 = [6 214 160]/255; % number of dead cells
 col4 = [17 138 178]/255; %number of cells
 
-%% Drug PK parameters
+% ovariance cancer cell proliferation parameters
+r = 0.052696;       % cell proliferation rate
+K = 1745423909.2602; % cell carrying capacity
+
+% Drug PK parameters
 
 %general data
 p.C0 = 5000;   %initial number of cells
 p.D0=0;     %initial number of dead cells
 tspan=[0 12]; %0 to 12 hours 
-%p.r = 0.27073;%Gompertz growth %0.3493; %proliferation rate obtained in vitro (per day)
-%p.K = 1607.5956*1E6;
-%KGN Gompertz model
 p.r = 0.052696;
 p.K = 1745423909.2602;
 
@@ -34,6 +34,7 @@ p.BW=70;%kg
 IC50_PAC1_TRAIL=40.3135;
 Imax_PAC1_TRAIL=1.0304;
 h_PAC1_TRAIL=0.6829;
+
 %PAC-1 data
 delta_PAC1=0.02208;
 
@@ -93,14 +94,19 @@ LB = 0.*ones(1,nvars);
 UB = 10.*ones(1,nvars); 
 IntCon = 1:nvars; %The condition that ensures that the optimial solution enforces integer multiple doses of the baseline dose
 
+% settng time vector for simulation
 tvec = linspace(0,70,200);
 
 for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
+    
     disp(j)
-    VPload = VirtualP(j,[1,2,3,4]); %load the varied parameters from the virtual patient and update VPx.
+    
+    VPload = VirtualP(j,[1,2,3,4]); %load the varied parameters from the virtual patient and update VPload.
+    
     %calculate ke for each drug from Cl and Vd
     p.ke1=VPload(2)/VPload(1);
     p.ke2=VPload(4)/VPload(3);
+    
     %need the ke for each drug and Vd for PAC1 (to calculate dose)
     Vd1=VPload(1);
     VParam=[p.ke1 p.Vd1 p.ke2];
@@ -108,6 +114,10 @@ for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
     VParam(2), ...
     VParam(3)};
     ParameterNames = {'ke1','Vd1','ke2'}; %The name of parameters to be varied
+    
+    CPAC0_vec(j) = 3*VirtualP(j,5);
+    kePAC1_vec(j) = VPload(2)/VPload(1);
+    keTRAIL_vec(j) = VPload(4)/VPload(3);
     
     p.dosePAC1=3*VirtualP(j,5);
     p.doseTRAIL=75;
@@ -122,26 +132,20 @@ for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
     PAC1(j,:) = deval(sol,tvec,3);
     TRAIL(j,:) = deval(sol,tvec,4);
     
-  end  
+end  
 
+% Plot the number of cancer cells
 figure
 hold on 
 plot(tvec, Cancercells,'Color',col4,'LineWidth',2)
 xlabel('Time (days)')
 set(gca,'FontSize',18)
+set(gca,'yscale','log')
 ylabel('Cells')
 title('Cancer cells')
 xlim([0 70])
 
-figure
-hold on 
-plot(tvec, Deadcells,'Color',col3,'LineWidth',2)
-xlabel('Time (days)')
-set(gca,'FontSize',18)
-ylabel('Cells')
-title('Dead cells')
-xlim([0 70])
-
+%Plot the PAC-1 concentration
 figure
 hold on 
 plot(tvec, PAC1,'Color',col2,'LineWidth',2)
@@ -152,6 +156,7 @@ title('PAC-1')
 ylim([0 250])
 xlim([0 70])
 
+% Plot the TRAIL concentration
 figure
 hold on 
 plot(tvec, TRAIL,'Color',col1,'LineWidth',2)
@@ -163,3 +168,38 @@ xlim([0 70])
 axes('position',[.65 .175 .25 .25])
 box on % put box around new pair of axes
 plot(tvec, TRAIL,'Color',col1,'LineWidth',2)
+
+
+%%
+
+%plot the distribution for initial PAC-1 doses
+figure
+hold on
+histogram(CPAC0_vec)
+grid on
+box on
+xlabel('Frequency')
+ylabel('C_{PAC1}(0)')
+set(gca,'FontSize',18)
+
+
+%plot the distribution for PAC-1 elimination rates
+figure
+hold on
+histogram(kePAC1_vec)
+grid on
+box on
+xlabel('Frequency')
+ylabel('k_{ePAC1}')
+set(gca,'FontSize',18)
+
+
+%plot the distribution for TRAIL elimination rates
+figure
+hold on
+histogram(keTRAIL_vec)
+grid on
+box on
+xlabel('Frequency')
+ylabel('k_{eTRAIL}')
+set(gca,'FontSize',18)
