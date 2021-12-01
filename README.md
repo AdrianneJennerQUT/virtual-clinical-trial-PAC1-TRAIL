@@ -1,3 +1,5 @@
+![alt text](https://github.com/AdrianneJennerQUT/virtual-clinical-trial-PAC1-TRAIL/GraphicalAbstract.png?raw=true)
+
 Code in this repositiory was used to produce the results in the paper: 
 
 "Establishing combination PAC-1 and TRAIL regimens for treating ovarian cancer based on patient-specific pharmacokinetic profiles using in silico clinical trials"
