@@ -1,5 +1,5 @@
 %% Fitness function
-function [Obj] = ProtocolOptimizerObjective(x,PA)   
+function [solTreat] = modelsimulator_multidose(x,PA)   
 
 %PAC-1
 %Load the dosing strategy for PAC-1
@@ -19,14 +19,6 @@ PA.IC = [PA.C0;PA.D0;PA.DosePAC1(1);PA.DoseTrail(1)];
         
 % Solve system
 [solTreat] = SimulateComboDrugModel(PA);
-
-%Objective function: Area under the tumour curve+area under treatment curve
-TimeSeries = linspace(0,PA.tf,1001); %Create 1000 evenly space points inside the time domain
-EvalSol = deval(solTreat,TimeSeries,1); %Evaluate the tumour solution at the collocation points
-CumulativeTumourBurden = trapz(TimeSeries,EvalSol); %Calculate the tumour AUC
-
-%The objective function we are trying to minimize.
-Obj = CumulativeTumourBurden + TotalDose;
 
 %% Distributed Immunity  Solver
 

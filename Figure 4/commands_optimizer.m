@@ -3,13 +3,9 @@ clearvars
 
 %% Virtual patients
 
-% %uncomment to regenerate a new cohort
-% num_patients=100;
-% VP=GeneratingPatients(num_patients);
-
-load VP.mat
-load VP_May31.mat
-VirtualP=[VP; VP_May31];
+%loading patient parameters
+load VirtualPatients_11_01_22
+VirtualP=[VP];
 
 %% Drug PK parameters
 
@@ -17,8 +13,7 @@ VirtualP=[VP; VP_May31];
 p.C0 = 5000;   %initial number of cells
 p.D0=0;     %initial number of dead cells
 tspan=[0 12]; %0 to 12 hours 
-%p.r = 0.27073;%Gompertz growth %0.3493; %proliferation rate obtained in vitro (per day)
-%p.K = 1607.5956*1E6;
+
 %KGN Gompertz model
 p.r = 0.052696;
 p.K = 1745423909.2602;
@@ -91,7 +86,9 @@ IntCon = 1:nvars; %The condition that ensures that the optimial solution enforce
 OptimalDose = zeros(size(VirtualP,1),nvars); %Matrix to store the optimal doses for each patient
 
 for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
+    
     disp(j)
+    
     VPload = VirtualP(j,[1,2,3,4]); %load the varied parameters from the virtual patient and update VPx.
     %calculate ke for each drug from Cl and Vd
     p.ke1=VPload(2)/VPload(1);
@@ -104,18 +101,18 @@ for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
     VParam(3)};
     ParameterNames = {'ke1','Vd1','ke2'}; %The name of parameters to be varied
     
-    p.dosePAC1=3*VirtualP(j,5);
-    p.doseTRAIL=75;
+    p.dosePAC1=75;
+    p.doseTRAIL=3*VirtualP(j,5);
     
     %  Update model parameters
     [p.(ParameterNames{1}),p.(ParameterNames{2}),p.(ParameterNames{3})] = C{:}; %update the parameters for this run 
 
-    tic 
+     % determine optimal dose for patient 
     FObjective=@(x)ProtocolOptimizerObjective(x,p);
     opts = optimoptions('ga','EliteCount',15,'MaxStallGenerations',4,'FunctionTolerance',1e-6, 'MaxGenerations',50,'Display','iter','PopulationSize',60);
     [x,fval] = ga(FObjective, nvars,[],[],[],[],LB,UB,[],IntCon,opts);   
     
-    %Store the optimal dosing regime ****
+    %Store the optimal dosing regime 
     OptimalDose(j,:) = x;
     Results{j}.OptimalDose=OptimalDose;
     Results{j}.fval=fval;
@@ -123,37 +120,27 @@ for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
     %simulate model on optimal dosage and store
     [sol] = modelsimulator_multidose(x,p)   
     SolMat{j} = sol;
-    save('Results_Nov8','Results','SolMat')
-    
-    
- 
-    toc
+    save('ResultsDec17','Results','SolMat')
+     
     
 end
 
 %% figure plotting heatmap of optimal dosages
 
-sumX = [0 18 25
-    0 95 115
-    10 147 150
-    148 210 189
-    233 216 166
-    238 155 0
-    202 103 2
-    187 62 3
-    174 32 18
-    155 34 38]/255;
+%load('ResultsDec17')
+%OptimalDose = UpdatedResults;
 
-sumf = [255,247,243
-253,224,221
-252,197,192
-250,159,181
-247,104,161
-221,52,151
-174,1,126
-122,1,119
-73,0,106]/255;
+sumX = [247,252,240
+224,243,219
+204,235,197
+168,221,181
+123,204,196
+78,179,211
+43,140,190
+8,104,172
+8,64,129]/255;
 
+%Heatmap of patients optimal dosage for PAC-1
 figure
 h = heatmap(OptimalDose(:,1:11),'CellLabelColor','none','Colormap',sumX,'GridVisible','off')
 ylabel('Virtual Patients')
@@ -177,7 +164,7 @@ h.YDisplayLabels(1:400) = {""}
 s = struct(h);
 s.XAxis.TickLabelRotation = 0;  % vertical
 
-
+% heatmap of patients optimal dose for TAIL
 figure
 h = heatmap(OptimalDose(:,12:22),'CellLabelColor','none','Colormap',sumX,'GridVisible','off')
 ylabel('Virtual Patients')
@@ -199,16 +186,92 @@ h.XDisplayLabels(11) = {"10"}
 h.YDisplayLabels(1:400) = {""}
 
 s = struct(h);
+
 s.XAxis.TickLabelRotation = 0;  % vertical
+
+%% Plotting virtual patients but segregated by High PAC-1 elimination and Normal PAC-1 elimination 
+
+% loading IDs for patients in High PAC-1 elimianation cohort (cohort 1) and
+% normal PAC-1 elimination (cohort 2)
+load('cohort1_id.mat')
+cohort2_id = [];
+for ii = 1:400
+    if isempty(find(cohort1_id == ii))==1
+        cohort2_id = [cohort2_id;ii];  
+    end
+end
+
+sumX = [247,252,240
+224,243,219
+204,235,197
+168,221,181
+123,204,196
+78,179,211
+43,140,190
+8,104,172
+8,64,129]/255;
+
+% plotting heatmap of optimal PAC-1 dosage where patients are plotted in
+% their subcohort
+figure
+h = heatmap(OptimalDose([cohort2_id;cohort1_id],1:11),'CellLabelColor','none','Colormap',sumX,'GridVisible','off')
+ylabel('Virtual Patients')
+xlabel('Time (weeks)')
+title('PAC-1')
+set(gca,'FontSize',16)
+h.XDisplayLabels(1) = {"0"}
+h.XDisplayLabels(2) = {"1"}
+h.XDisplayLabels(3) = {"2"}
+h.XDisplayLabels(4) = {"3"}
+h.XDisplayLabels(5) = {"4"}
+h.XDisplayLabels(6) = {"5"}
+h.XDisplayLabels(7) = {"6"}
+h.XDisplayLabels(8) = {"7"}
+h.XDisplayLabels(9) = {"8"}
+h.XDisplayLabels(10) = {"9"}
+h.XDisplayLabels(11) = {"10"}
+
+h.YDisplayLabels(1:400) = {""}
+
+s = struct(h);
+s.XAxis.TickLabelRotation = 0;  % vertical
+title('PAC-1')
+
+% plotting heatmap of optimal TRAIL dosage where patients are plotted in
+% their subcohort
+figure
+h = heatmap(OptimalDose([cohort2_id;cohort1_id],12:22),'CellLabelColor','none','Colormap',sumX,'GridVisible','off')
+ylabel('Virtual Patients')
+xlabel('Time (weeks)')
+title('PAC-1')
+set(gca,'FontSize',16)
+h.XDisplayLabels(1) = {"0"}
+h.XDisplayLabels(2) = {"1"}
+h.XDisplayLabels(3) = {"2"}
+h.XDisplayLabels(4) = {"3"}
+h.XDisplayLabels(5) = {"4"}
+h.XDisplayLabels(6) = {"5"}
+h.XDisplayLabels(7) = {"6"}
+h.XDisplayLabels(8) = {"7"}
+h.XDisplayLabels(9) = {"8"}
+h.XDisplayLabels(10) = {"9"}
+h.XDisplayLabels(11) = {"10"}
+
+h.YDisplayLabels(1:400) = {""}
+
+s = struct(h);
+s.XAxis.TickLabelRotation = 0;  % vertical
+title('TRAIL')
+
 
 %% plotting patient dynamics under optimal protocol 
 
+% reloading patient variable dynamics
 for i = 1:400
     
     sol = SolMat{i};
     time = linspace(0,p.tf,1000);
     solind_C(i,:) = deval(sol,time,1);
-    solind_D(i,:) = deval(sol,time,2);
     solind_PAC1(i,:) = deval(sol,time,3);
     solind_TRAIL(i,:) = deval(sol,time,4);
     
@@ -216,7 +279,7 @@ for i = 1:400
     
 end
 
-
+%plotting the log cumulative tumour burden
 figure
 histogram(log(real(CumulativeTumourBurden_mat_cohort2)),200,'FaceColor',[10 147 150]/255,'EdgeColor','none')
 xlabel('log(Cumulative Tumour Burden)')
@@ -224,7 +287,7 @@ ylabel('Frequency')
 set(gca,'FontSize',18)
 box off
 
-
+% plotting the number of tumour cells for each patient
 fig1 = figure
 hold on
 plot(time,solind_C,'Color',[0.5 0.5 0.5])
@@ -233,6 +296,7 @@ ylabel('Cancer cells C, log(cells)')
 set(gca,'FontSize',18)
 set(gca,'yscale','log')
 
+% plotting the mean and std for the cohort
 fig1 = figure
 hold on
 options.handle = fig1;
@@ -248,20 +312,7 @@ ylabel('Cancer cells C, cells')
 set(gca,'FontSize',18)
 ylim([0 2e6])
 
-fig2 = figure
-hold on
-options.handle = fig2;
-options.color_area = [252,141,98]/255;
-options.color_line = [252,141,98]/255;
-options.alpha = 0.3;
-options.error = 'std';
-options.line_width = 2;
-options.x_axis = time;
-plot_areaerrorbar(real(solind_D),options)
-xlabel('Time')
-ylabel('Dead cells D, cells')
-set(gca,'FontSize',18)
-
+% plotting mean and std for cohort PAC-1 
 fig1 = figure
 hold on
 options.handle = fig1;
@@ -273,11 +324,11 @@ options.line_width = 2;
 options.x_axis = time;
 plot_areaerrorbar(solind_PAC1,options)
 xlabel('Time')
-ylabel('PAC-1')
+ylabel('PAC-1 plasma ({\mu}M)')
 set(gca,'FontSize',18)
 ylim([0 2500])
 
-
+% plotting mean and std for cohort TRAIL
 fig1 = figure
 hold on
 options.handle = fig1;
@@ -289,10 +340,36 @@ options.line_width = 2;
 options.x_axis = time;
 plot_areaerrorbar(solind_TRAIL,options)
 xlabel('Time')
-ylabel('TRAIL')
+ylabel('TRAIL plasma (ng/ml)')
 set(gca,'FontSize',18)
 ylim([0 400])
 
 
+%% calculating day of recovery and percentage recovered
+recovery = [];
 
+%calculating if patient pcount recovered, i.e. less than 1 cell remaining
+for pcount = 1:400
+    if isempty(find(solind_C(pcount,:)<1))==0
+        loc_recovery = find(solind_C(pcount,:)<1,1);
+        recovery = [recovery;time(loc_recovery)];
+    end
+end
+
+%plotting a histogram for patient recovery times
+figure
+h = histogram(recovery)
+ylabel('Frequency')
+xlabel('Day of recovery')
+grid on 
+box off
+set(gca,'FontSize',18)
+
+%plotting the cumulative percentage of virtual patients that recover
+figure
+plot(h.BinEdges(1:10)+0.5,cumsum(h.Values)/400*100,'o:','Color',[0.51 0.87 0.85],'LineWidth',2)
+box off
+xlabel('Time (days)')
+ylabel('Percentage recovered')
+set(gca,'FontSize',18)
 
