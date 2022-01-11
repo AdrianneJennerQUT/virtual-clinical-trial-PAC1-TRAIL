@@ -60,15 +60,16 @@ D = y(2); % tracking number of dead cells
 Cp1 = y(3); %PAC-1
 Cp2 = y(4); % TRAIL   
 
-exp1 = Cp1.^PA.gamma_1./(PA.psi*PA.IC50_1).^PA.gamma_1;
-exp2 = (PA.xi*Cp2).^PA.gamma_2./(PA.psi*PA.IC50_1).^PA.gamma_2;
+    exp1 = Cp1.^PA.gamma_1./(PA.psi*PA.IC50_1).^PA.gamma_1;
+    exp2 = (PA.xi*Cp2).^PA.gamma_2./(PA.psi*PA.IC50_1).^PA.gamma_2;
 
-E = (PA.Imax_1.*exp1+PA.Imax_2.*exp2+(PA.Imax_1+PA.Imax_2-PA.Imax_1*PA.Imax_2)*exp1.*exp2)./(exp1+exp2+exp1.*exp2+1);%E fct for two drug 
+    E = (PA.Imax_1.*exp1+PA.Imax_2.*exp2+(PA.Imax_1+PA.Imax_2-PA.Imax_1*PA.Imax_2)*exp1.*exp2)./(exp1+exp2+exp1.*exp2+1);%E fct for two drug 
 
-dC = (C.*PA.r.*log(PA.K./PA.C0).*exp(-1.*PA.r.*t))-C*E;%PA.r*C-C*E;
-dD = C*E;
-dCp1 = -PA.ke1*Cp1;
-dCp2 = -PA.ke2*Cp2; 
+    dC = (C.*PA.r.*log(PA.K./PA.C0).*exp(-1.*PA.r.*t))-C*E;%PA.r*C-C*E;
+    dD = C*E;
+    dCp1 = -PA.ke1*Cp1;
+    dCp2 = -PA.ke2*Cp2; 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assemble vector of RHS to solve

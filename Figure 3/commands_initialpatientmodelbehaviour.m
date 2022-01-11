@@ -2,9 +2,8 @@
 % TRAIL
 
 %% load virtual patients in
-load VP.mat
-load VP_May31.mat
-VirtualP=[VP; VP_May31];
+load VirtualPatients_11_01_22
+VirtualP=[VP];
 
 %% Loading in initial parameter values 
 
@@ -95,7 +94,7 @@ UB = 10.*ones(1,nvars);
 IntCon = 1:nvars; %The condition that ensures that the optimial solution enforces integer multiple doses of the baseline dose
 
 % settng time vector for simulation
-tvec = linspace(0,70,200);
+tvec = linspace(0,70,1000);
 
 for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
     
@@ -119,8 +118,8 @@ for j=1:size(VirtualP,1) %For each patient, find the optimal dosing regime
     kePAC1_vec(j) = VPload(2)/VPload(1);
     keTRAIL_vec(j) = VPload(4)/VPload(3);
     
-    p.dosePAC1=3*VirtualP(j,5);
-    p.doseTRAIL=75;
+    p.dosePAC1=75;
+    p.doseTRAIL=3*VirtualP(j,5);
     
     %  Update model parameters
     [p.(ParameterNames{1}),p.(ParameterNames{2}),p.(ParameterNames{3})] = C{:}; %update the parameters for this run 
@@ -141,8 +140,8 @@ plot(tvec, Cancercells,'Color',col4,'LineWidth',2)
 xlabel('Time (days)')
 set(gca,'FontSize',18)
 set(gca,'yscale','log')
-ylabel('Cells')
-title('Cancer cells')
+ylabel('Tumour cells (number)')
+%title('Cancer cells')
 xlim([0 70])
 
 %Plot the PAC-1 concentration
@@ -151,8 +150,8 @@ hold on
 plot(tvec, PAC1,'Color',col2,'LineWidth',2)
 xlabel('Time (days)')
 set(gca,'FontSize',18)
-ylabel('{\mu}M')
-title('PAC-1')
+ylabel('PAC-1 plasma (mg/kg)')
+%title('PAC-1')
 ylim([0 250])
 xlim([0 70])
 
@@ -162,8 +161,8 @@ hold on
 plot(tvec, TRAIL,'Color',col1,'LineWidth',2)
 xlabel('Time (days)')
 set(gca,'FontSize',18)
-ylabel('ngml^{-1}')
-title('TRAIL')
+ylabel('TRAIL plasma (mg)')
+%title('TRAIL')
 xlim([0 70])
 axes('position',[.65 .175 .25 .25])
 box on % put box around new pair of axes
@@ -175,31 +174,32 @@ plot(tvec, TRAIL,'Color',col1,'LineWidth',2)
 %plot the distribution for initial PAC-1 doses
 figure
 hold on
-histogram(CPAC0_vec)
+histogram(CPAC0_vec,'FaceColor',[255,93,21]/255,'EdgeColor',[1 1 1])
 grid on
 box on
-xlabel('Frequency')
-ylabel('C_{PAC1}(0)')
+ylabel('Frequency')
+xlabel('C_{TRAIL}(0)')
 set(gca,'FontSize',18)
-
+box on
 
 %plot the distribution for PAC-1 elimination rates
 figure
 hold on
-histogram(kePAC1_vec)
+histogram(kePAC1_vec,'FaceColor',[196 106 255]/255,'EdgeColor','none')
 grid on
 box on
-xlabel('Frequency')
-ylabel('k_{ePAC1}')
+ylabel('Frequency')
+xlabel('k_{e,PAC1}')
 set(gca,'FontSize',18)
-
+box on
 
 %plot the distribution for TRAIL elimination rates
 figure
 hold on
-histogram(keTRAIL_vec)
+histogram(keTRAIL_vec,'FaceColor',[131 221 66]/255,'EdgeColor',[1 1 1])
 grid on
 box on
-xlabel('Frequency')
-ylabel('k_{eTRAIL}')
+ylabel('Frequency')
+xlabel('k_{e,TRAIL}')
 set(gca,'FontSize',18)
+box on
