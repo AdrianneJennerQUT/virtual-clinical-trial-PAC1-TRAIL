@@ -90,6 +90,10 @@ VarPAC1 = [SD_VdcPAC1^2 0
 rng(1);%to make sure you generate the same patients each time you run this (remove to make new cohort) - seed
 PatientParamsPAC1=mvnrnd(FixedValuesPAC1,VarPAC1,num_patients); %randomly generating patients
 
+while isempty(find(PatientParamsPAC1<0))==0
+   PatientParamsPAC1=mvnrnd(FixedValuesPAC1,VarPAC1,num_patients); %randomly generating patients
+end
+
 % TRAIL parameters
 %Fixed effects
 theta_Vd_TRAIL=4.28;%Vd (L)
@@ -101,10 +105,14 @@ SD_Cl_TRAIL=0.326*theta_Cl_TRAIL;
 
 FixedValuesTRAIL=[theta_Vd_TRAIL theta_Cl_TRAIL];
 VarTRAIL=[SD_Vd_TRAIL^2 0;
-          0 SD_Cl_TRAIL];
+          0 SD_Cl_TRAIL.^2];
 
 %Sample patients
 PatientParamsTRAIL=mvnrnd(FixedValuesTRAIL,VarTRAIL,num_patients); %randomly generating patients
+
+while isempty(find(PatientParamsTRAIL<0))==0
+PatientParamsTRAIL=mvnrnd(FixedValuesTRAIL,VarTRAIL,num_patients); %randomly generating patients
+end
 
 %Plot resulting patient distributions
 figure
